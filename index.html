@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bus Passes - User Registration, Sign-In & Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="number"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .message.error {
+            color: red;
+        }
+
+        .switch {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .switch a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        .switch a:hover {
+            text-decoration: underline;
+        }
+
+        .dashboard,
+        .bus-passes-page {
+            display: none;
+        }
+
+        .user-info {
+            margin-bottom: 30px;
+        }
+
+        .user-info h3 {
+            margin: 10px 0;
+        }
+
+        .wallet {
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #f1f1f1;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+        }
+
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Bus Pass List */
+        .bus-pass-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin: 20px;
+        }
+
+        .bus-pass {
+            background-color: #fff;
+            padding: 20px;
+            margin: 10px;
+            width: 250px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s ease;
+        }
+
+        .bus-pass:hover {
+            transform: translateY(-10px);
+        }
+
+        .bus-pass h2 {
+            margin: 0;
+            font-size: 20px;
+            color: #2c3e50;
+        }
+
+        .bus-pass .price {
+            font-size: 18px;
+            color: #e74c3c;
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 10px;
+            width: 100%;
+        }
+
+        button:hover {
+            background-color: #2ecc71;
+        }
+
+        /* Error Styling */
+        .error-message {
+            color: #e74c3c;
+            font-size: 18px;
+            text-align: center;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- User Registration, Sign-In, and Dashboard -->
+
+        <!-- Registration & Sign-In Form -->
+        <div id="auth-form">
+            <h2 id="form-title">User Registration</h2>
+
+            <!-- Registration Form -->
+            <form id="registrationForm">
+                <label for="name">Name:</label>
+                <input type="text" id="name" name="name" placeholder="Enter your name" required>
+
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="Enter your email" required>
+
+                <button type="submit">Register</button>
+            </form>
+
+            <!-- Sign-In Form (hidden by default) -->
+            <form id="signInForm" style="display:none;">
+                <label for="signin-email">Email:</label>
+                <input type="email" id="signin-email" name="email" placeholder="Enter your email" required>
+
+                <button type="submit">Sign In</button>
+            </form>
+
+            <div id="message" class="message"></div>
+
+            <div class="switch">
+                <a id="switch-to-signin" href="javascript:void(0)">Already a user? Sign In</a> |
+                <a id="switch-to-register" href="javascript:void(0)" style="display:none;">New user? Register</a>
+            </div>
+        </div>
+
+        <!-- User Dashboard -->
+        <div id="dashboard" class="dashboard">
+            <h2>User Dashboard</h2>
+
+            <div class="user-info">
+                <h3>Welcome, <span id="user-name"></span></h3>
+                <p><strong>Email:</strong> <span id="user-email"></span></p>
+                <div class="qr-code">
+                    <h3>Your QR Code:</h3>
+                    <img id="qr-code" alt="QR Code">
+                </div>
+            </div>
+
+            <div class="wallet">
+                <h3>Your Wallet Balance:</h3>
+                <p id="wallet-balance">Rs. 0.00</p>
+            </div>
+
+            <a id="to-bus-passes" href="javascript:void(0)" class="back-button">Want to Purchase Pass?</a>
+            <button class="back-button" onclick="logout()">Log Out</button>
+        </div>
+
+        <!-- Bus Passes Page -->
+        <div id="bus-passes-page" class="bus-passes-page">
+            <h2>Available Bus Passes</h2>
+            <table id="bus-pass-table">
+                <thead>
+                    <tr>
+                        <th>Start Destination</th>
+                        <th>End Destination</th>
+                        <th>Price</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td colspan="3" style="text-align: center;">Loading bus passes...</td></tr>
+                </tbody>
+            </table>
+            <button class="back-button" onclick="backToDashboard()">Back to Dashboard</button>
+        </div>
+
+        <!-- Bus Pass List -->
+        <div id="bus-pass-list" class="bus-pass-list"></div>
+
+        <div id="error-message" class="error-message"></div>
+
+    </div>
+
+    <script>
+        // User Registration, Sign-In, and Dashboard Script
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const registrationForm = document.getElementById("registrationForm");
+            const signInForm = document.getElementById("signInForm");
+            const authForm = document.getElementById("auth-form");
+            const dashboard = document.getElementById("dashboard");
+            const busPassesPage = document.getElementById("bus-passes-page");
+            const messageDiv = document.getElementById("message");
+
+            const switchToSignInLink = document.getElementById("switch-to-signin");
+            const switchToRegisterLink = document.getElementById("switch-to-register");
+            const toBusPassesLink = document.getElementById("to-bus-passes");
+
+            function showAuthForm() {
+                authForm.style.display = "block";
+                dashboard.style.display = "none";
+                busPassesPage.style.display = "none";
+            }
+
+            function showDashboard(data) {
+                authForm.style.display = "none";
+                dashboard.style.display = "block";
+                busPassesPage.style.display = "none";
+
+                document.getElementById("user-name").textContent = data.user_name;
+                document.getElementById("user-email").textContent = data.user_email;
+                document.getElementById("qr-code").src = data.qr_code;
+                document.getElementById("wallet-balance").textContent = `Rs. ${data.wallet_balance || "0.00"}`;
+            }
+
+            function showBusPasses(data) {
+                const busPassTable = document.getElementById("bus-pass-table").getElementsByTagName('tbody')[0];
+                busPassTable.innerHTML = data.bus_passes.length === 0
+                    ? `<tr><td colspan="3" style="text-align: center;">No bus passes available.</td></tr>`
+                    : data.bus_passes.map(pass =>
+                        `<tr>
+                            <td>${pass.start_destination}</td>
+                            <td>${pass.end_destination}</td>
+                            <td>Rs. ${pass.price}</td>
+                        </tr>`).join('');
+
+                dashboard.style.display = "none";
+                busPassesPage.style.display = "block";
+            }
+
+            registrationForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const name = document.getElementById("name").value;
+                const email = document.getElementById("email").value;
+
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/register", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name, email })
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        localStorage.setItem('user_id', result.user_id);
+                        showDashboard(result);
+                    } else {
+                        messageDiv.textContent = result.error || "Registration failed.";
+                        messageDiv.className = "message error";
+                    }
+                } catch (error) {
+                    messageDiv.textContent = "An error occurred. Please try again.";
+                    messageDiv.className = "message error";
+                }
+            });
+
+            signInForm.addEventListener("submit", async function (event) {
+                event.preventDefault();
+                const email = document.getElementById("signin-email").value;
+
+                try {
+                    const response = await fetch("http://127.0.0.1:5000/sign-in", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ email })
+                    });
+
+                    const result = await response.json();
+                    if (response.ok) {
+                        localStorage.setItem('user_id', result.user_id);
+                        showDashboard(result);
+                    } else {
+                        messageDiv.textContent = result.error || "Sign-in failed.";
+                        messageDiv.className = "message error";
+                    }
+                } catch (error) {
+                    messageDiv.textContent = "An error occurred. Please try again.";
+                    messageDiv.className = "message error";
+                }
+            });
+
+            switchToSignInLink.addEventListener("click", function () {
+                registrationForm.style.display = "none";
+                signInForm.style.display = "block";
+                switchToSignInLink.style.display = "none";
+                switchToRegisterLink.style.display = "inline";
+                messageDiv.textContent = "";
+            });
+
+            switchToRegisterLink.addEventListener("click", function () {
+                signInForm.style.display = "none";
+                registrationForm.style.display = "block";
+                switchToRegisterLink.style.display = "none";
+                switchToSignInLink.style.display = "inline";
+                messageDiv.textContent = "";
+            });
+
+            toBusPassesLink.addEventListener("click", async function () {
+                const userId = localStorage.getItem('user_id');
+                try {
+                    const response = await fetch(`http://127.0.0.1:5000/bus_pass`);
+                    const result = await response.json();
+                    if (response.ok) {
+                        showBusPasses(result);
+                    } else {
+                        alert(result.error || "Failed to fetch bus passes.");
+                    }
+                } catch (error) {
+                    alert("An error occurred while fetching bus passes.");
+                }
+            });
+
+            function backToDashboard() {
+                dashboard.style.display = "block";
+                busPassesPage.style.display = "none";
+            }
+
+            function logout() {
+                localStorage.clear();
+                showAuthForm();
+            }
+
+            window.logout = logout;
+            window.backToDashboard = backToDashboard;
+
+            const userId = localStorage.getItem('user_id');
+            if (userId) {
+                fetch(`http://127.0.0.1:5000/dashboard/${userId}`)
+                    .then(response => response.json())
+                    .then(data => showDashboard(data))
+                    .catch(() => localStorage.clear());
+            } else {
+                showAuthForm();
+            }
+        });
+
+        // Bus Passes Script
+
+        // Fetching Bus Passes from Flask backend
+        function fetchBusPasses() {
+            fetch('http://127.0.0.1:5000/bus_pass')  // Replace with your Flask backend URL
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error("Failed to fetch bus passes.");
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    showBusPasses(data);
+                })
+                .catch(error => {
+                    document.getElementById("error-message").textContent = error.message;
+                });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 50px auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .user-info div {
+            width: 48%;
+        }
+
+        .travel-history {
+            margin-top: 30px;
+        }
+
+        .travel-history table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .travel-history table, th, td {
+            border: 1px solid #ccc;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        .qr-code img {
+            width: 150px;
+            height: 150px;
+            border-radius: 8px;
+        }
+
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            text-align: center;
+            cursor: pointer;
+        }
+
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>User Dashboard</h2>
+
+        <div class="user-info">
+            <div>
+                <h3>Welcome, <span id="user-name"></span></h3>
+                <p><strong>Email:</strong> <span id="user-email"></span></p>
+            </div>
+            <div class="qr-code">
+                <h3>Your QR Code:</h3>
+                <img id="user-qr-code" src="" alt="QR Code">
+            </div>
+        </div>
+
+        <div class="travel-history">
+            <h3>Your Travel History:</h3>
+            <table id="travel-history-table">
+                <thead>
+                    <tr>
+                        <th>Start Location</th>
+                        <th>End Location</th>
+                        <th>Distance</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Travel records will be populated here -->
+                </tbody>
+            </table>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='index.html'">Back to Home</button>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const userId = params.get('user_id');  // Get user_id from the URL
+
+        // Fetch user data from the backend
+        async function fetchUserData() {
+            try {
+                const response = await fetch(`http://127.0.0.1:5000/dashboard/${userId}`);
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Set user information
+                    document.getElementById("user-name").textContent = data.user_name;
+                    document.getElementById("user-email").textContent = data.user_email;
+                    document.getElementById("user-qr-code").src = data.qr_code;
+
+                    // Display travel history
+                    const travelHistoryTable = document.getElementById("travel-history-table").getElementsByTagName('tbody')[0];
+                    data.travel_history.forEach(record => {
+                        const row = travelHistoryTable.insertRow();
+                        row.innerHTML = `
+                            <td>(${record.start_lat}, ${record.start_lng})</td>
+                            <td>(${record.end_lat}, ${record.end_lng})</td>
+                            <td>${record.distance} km</td>
+                        `;
+                    });
+                } else {
+                    alert(data.error || "Failed to fetch user data");
+                }
+            } catch (error) {
+                alert("Error fetching data: " + error.message);
+            }
+        }
+
+        fetchUserData();
+    </script>
+</body>
+</html>
