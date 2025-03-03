@@ -231,7 +231,7 @@
             <div id="message" class="message"></div>
 
             <div class="switch">
-                <a id="switch-to-signin" href="javascript:void(0)">Already a user? Sign In</a> |
+                <a id="switch-to-signin" href="javascript:void(0)">Already a user? Sign In</a> 
                 <a id="switch-to-register" href="javascript:void(0)" style="display:none;">New user? Register</a>
             </div>
         </div>
@@ -247,7 +247,50 @@
                     <h3>Your QR Code:</h3>
                     <img id="qr-code" alt="QR Code">
                 </div>
-            </div>
+            
+            <!-- Ticket Booking Section on Dashboard -->
+<div id="ticket-booking">
+    <label for="from-location">From:</label>
+    <select id="from-location" onchange="validateSelection()">
+        <option value="">Select</option>
+        <option value="Margao KTC">Margao KTC</option>
+        <option value="Panjim KTC">Panjim KTC</option>
+        <option value="Bambolim">Bambolim</option>
+        <option value="Vasco">Vasco</option>
+        <option value="Ponda">Ponda</option>
+        <option value="Goa University">Goa University</option>
+        <option value="Cortalim">Cortalim</option>
+        <option value="Mapusa">Mapusa</option>
+        <option value="Quepem">Quepem</option>
+        <option value="Sanguem">Sanguem</option>
+    </select>
+    
+    <label for="to-location">To:</label>
+    <select id="to-location" onchange="validateSelection()">
+        <option value="">Select</option>
+        <option value="Margao KTC">Margao KTC</option>
+        <option value="Panjim KTC">Panjim KTC</option>
+        <option value="Bambolim">Bambolim</option>
+        <option value="Vasco">Vasco</option>
+        <option value="Ponda">Ponda</option>
+        <option value="Goa University">Goa University</option>
+        <option value="Cortalim">Cortalim</option>
+        <option value="Mapusa">Mapusa</option>
+        <option value="Quepem">Quepem</option>
+        <option value="Sanguem">Sanguem</option>
+    </select>
+    
+    <button id="purchase-ticket" disabled onclick="purchaseTicket()">Purchase Ticket</button>
+</div>
+
+<!-- Ticket Display Section -->
+<div id="ticket-display" style="display: none;">
+    <h3>Purchased Ticket</h3>
+    <p><strong>From:</strong> <span id="ticket-from"></span></p>
+    <p><strong>To:</strong> <span id="ticket-to"></span></p>
+    <p><strong>Date & Time:</strong> <span id="ticket-time"></span></p>
+</div>
+    </div>
 
             <div class="wallet">
                 <h3>Your Wallet Balance:</h3>
@@ -257,203 +300,223 @@
             <a id="to-bus-passes" href="javascript:void(0)" class="back-button">Want to Purchase Pass?</a>
             <button class="back-button" onclick="logout()">Log Out</button>
         </div>
-
-        <!-- Bus Passes Page -->
-        <div id="bus-passes-page" class="bus-passes-page">
+        <div id="bus-passes-page" style="display: none;">
             <h2>Available Bus Passes</h2>
-            <table id="bus-pass-table">
+            <table id="bus-pass-table" border="1">
                 <thead>
                     <tr>
                         <th>Start Destination</th>
                         <th>End Destination</th>
                         <th>Price</th>
+                        <th>Action</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="3" style="text-align: center;">Loading bus passes...</td></tr>
+                    <!-- Bus pass data will be dynamically inserted here -->
                 </tbody>
             </table>
-            <button class="back-button" onclick="backToDashboard()">Back to Dashboard</button>
+            <button id="back-to-dashboard">Back to Dashboard</button>
         </div>
-
-        <!-- Bus Pass List -->
-        <div id="bus-pass-list" class="bus-pass-list"></div>
-
-        <div id="error-message" class="error-message"></div>
-
-    </div>
-
+        
     <script>
-        // User Registration, Sign-In, and Dashboard Script
-
         document.addEventListener("DOMContentLoaded", function () {
             const registrationForm = document.getElementById("registrationForm");
             const signInForm = document.getElementById("signInForm");
             const authForm = document.getElementById("auth-form");
             const dashboard = document.getElementById("dashboard");
             const busPassesPage = document.getElementById("bus-passes-page");
-            const messageDiv = document.getElementById("message");
-
-            const switchToSignInLink = document.getElementById("switch-to-signin");
-            const switchToRegisterLink = document.getElementById("switch-to-register");
-            const toBusPassesLink = document.getElementById("to-bus-passes");
-
-            function showAuthForm() {
-                authForm.style.display = "block";
-                dashboard.style.display = "none";
-                busPassesPage.style.display = "none";
+            const switchToSignIn = document.getElementById("switch-to-signin");
+            const switchToRegister = document.getElementById("switch-to-register");
+            const backButton = document.getElementById("back-to-dashboard");
+    
+            // ✅ Ensure elements exist before adding event listeners
+            if (!registrationForm || !signInForm || !dashboard || !busPassesPage) {
+                console.error("One or more elements are missing in the HTML!");
+                return;
             }
-
+    
+            // Switch between Register and Sign-In forms
+            switchToSignIn.addEventListener("click", function () {
+                registrationForm.style.display = "none";
+                signInForm.style.display = "block";
+                switchToSignIn.style.display = "none";
+                switchToRegister.style.display = "inline";
+                document.getElementById("form-title").textContent = "User Sign In";
+            });
+    
+            switchToRegister.addEventListener("click", function () {
+                registrationForm.style.display = "block";
+                signInForm.style.display = "none";
+                switchToSignIn.style.display = "inline";
+                switchToRegister.style.display = "none";
+                document.getElementById("form-title").textContent = "User Registration";
+            });
+    
             function showDashboard(data) {
-                authForm.style.display = "none";
-                dashboard.style.display = "block";
-                busPassesPage.style.display = "none";
-
                 document.getElementById("user-name").textContent = data.user_name;
                 document.getElementById("user-email").textContent = data.user_email;
                 document.getElementById("qr-code").src = data.qr_code;
                 document.getElementById("wallet-balance").textContent = `Rs. ${data.wallet_balance || "0.00"}`;
+    
+                // Save user ID in localStorage
+                localStorage.setItem("user_id", data.user_id);
+    
+                // Show dashboard and hide auth form
+                authForm.style.display = "none";
+                dashboard.style.display = "block";
             }
-
-            function showBusPasses(data) {
-                const busPassTable = document.getElementById("bus-pass-table").getElementsByTagName('tbody')[0];
-                busPassTable.innerHTML = data.bus_passes.length === 0
-                    ? `<tr><td colspan="3" style="text-align: center;">No bus passes available.</td></tr>`
-                    : data.bus_passes.map(pass =>
-                        `<tr>
-                            <td>${pass.start_destination}</td>
-                            <td>${pass.end_destination}</td>
-                            <td>Rs. ${pass.price}</td>
-                        </tr>`).join('');
-
-                dashboard.style.display = "none";
-                busPassesPage.style.display = "block";
-            }
-
+    
+            // Registration Form Submission
             registrationForm.addEventListener("submit", async function (event) {
                 event.preventDefault();
                 const name = document.getElementById("name").value;
                 const email = document.getElementById("email").value;
-
-                try {
-                    const response = await fetch("http://127.0.0.1:5000/register", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name, email })
-                    });
-
-                    const result = await response.json();
-                    if (response.ok) {
-                        localStorage.setItem('user_id', result.user_id);
-                        showDashboard(result);
-                    } else {
-                        messageDiv.textContent = result.error || "Registration failed.";
-                        messageDiv.className = "message error";
-                    }
-                } catch (error) {
-                    messageDiv.textContent = "An error occurred. Please try again.";
-                    messageDiv.className = "message error";
-                }
+    
+                const response = await fetch("http://127.0.0.1:5000/register", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name, email })
+                });
+                const result = await response.json();
+                showDashboard(result);
             });
-
+    
+            // Sign-In Form Submission
             signInForm.addEventListener("submit", async function (event) {
                 event.preventDefault();
                 const email = document.getElementById("signin-email").value;
-
-                try {
-                    const response = await fetch("http://127.0.0.1:5000/sign-in", {
-                        method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ email })
-                    });
-
-                    const result = await response.json();
-                    if (response.ok) {
-                        localStorage.setItem('user_id', result.user_id);
-                        showDashboard(result);
-                    } else {
-                        messageDiv.textContent = result.error || "Sign-in failed.";
-                        messageDiv.className = "message error";
-                    }
-                } catch (error) {
-                    messageDiv.textContent = "An error occurred. Please try again.";
-                    messageDiv.className = "message error";
+    
+                const response = await fetch("http://127.0.0.1:5000/sign-in", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email })
+                });
+    
+                const result = await response.json();
+                if (response.ok) {
+                    showDashboard(result);
+                } else {
+                    document.getElementById("message").textContent = result.error || "Sign-in failed.";
+                    document.getElementById("message").classList.add("error");
                 }
             });
-
-            switchToSignInLink.addEventListener("click", function () {
-                registrationForm.style.display = "none";
-                signInForm.style.display = "block";
-                switchToSignInLink.style.display = "none";
-                switchToRegisterLink.style.display = "inline";
-                messageDiv.textContent = "";
-            });
-
-            switchToRegisterLink.addEventListener("click", function () {
-                signInForm.style.display = "none";
-                registrationForm.style.display = "block";
-                switchToRegisterLink.style.display = "none";
-                switchToSignInLink.style.display = "inline";
-                messageDiv.textContent = "";
-            });
-
-            toBusPassesLink.addEventListener("click", async function () {
-                const userId = localStorage.getItem('user_id');
-                try {
-                    const response = await fetch(`http://127.0.0.1:5000/bus_pass`);
-                    const result = await response.json();
-                    if (response.ok) {
-                        showBusPasses(result);
-                    } else {
-                        alert(result.error || "Failed to fetch bus passes.");
-                    }
-                } catch (error) {
-                    alert("An error occurred while fetching bus passes.");
-                }
-            });
-
+    
+            // Fetch and Display Bus Passes
+            async function fetchBusPasses() {
+                const response = await fetch("http://127.0.0.1:5000/bus_pass");
+                const result = await response.json();
+                showBusPasses(result);
+    
+                // Show the bus passes page and hide the dashboard
+                dashboard.style.display = "none";
+                busPassesPage.style.display = "block";
+            }
+    
+            function showBusPasses(data) {
+                const busPassTable = document.getElementById("bus-pass-table").getElementsByTagName("tbody")[0];
+                busPassTable.innerHTML = data.bus_passes.length === 0
+                    ? `<tr><td colspan="4" style="text-align: center;">No bus passes available.</td></tr>`
+                    : data.bus_passes.map(pass => `
+                        <tr>
+                            <td>${pass.start_destination}</td>
+                            <td>${pass.end_destination}</td>
+                            <td>Rs. ${pass.price}</td>
+                            <td><button onclick="purchaseBusPass('${pass.id}', ${pass.price})">Purchase</button></td>
+                        </tr>
+                    `).join("");
+            }
+    
+            // Handle Button Clicks
+            document.getElementById("to-bus-passes").addEventListener("click", fetchBusPasses);
+    
+            // ✅ Back to Dashboard Function (Fixed)
             function backToDashboard() {
+                console.log("Back to Dashboard button clicked!");  // Debugging
+    
+                if (!dashboard || !busPassesPage) {
+                    console.error("Dashboard or Bus Passes Page element not found!");
+                    return;
+                }
+    
                 dashboard.style.display = "block";
                 busPassesPage.style.display = "none";
             }
-
-            function logout() {
-                localStorage.clear();
-                showAuthForm();
-            }
-
-            window.logout = logout;
-            window.backToDashboard = backToDashboard;
-
-            const userId = localStorage.getItem('user_id');
-            if (userId) {
-                fetch(`http://127.0.0.1:5000/dashboard/${userId}`)
-                    .then(response => response.json())
-                    .then(data => showDashboard(data))
-                    .catch(() => localStorage.clear());
+    
+            // ✅ Attach event listener to Back button if it exists
+            if (backButton) {
+                backButton.addEventListener("click", backToDashboard);
             } else {
-                showAuthForm();
+                console.error("Back to Dashboard button not found!");
             }
+    
         });
-
-        // Bus Passes Script
-
-        // Fetching Bus Passes from Flask backend
-        function fetchBusPasses() {
-            fetch('http://127.0.0.1:5000/bus_pass')  // Replace with your Flask backend URL
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch bus passes.");
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    showBusPasses(data);
-                })
-                .catch(error => {
-                    document.getElementById("error-message").textContent = error.message;
+    
+        // ✅ Move purchaseBusPass function to global scope
+        async function purchaseBusPass(passId, price) {
+            const userId = localStorage.getItem("user_id");
+            if (!userId) {
+                alert("Please log in first.");
+                return;
+            }
+    
+            try {
+                const response = await fetch("http://127.0.0.1:5000/purchase_pass", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, id: passId, price })
                 });
+    
+                const result = await response.json();
+                if (response.ok) {
+                    alert("Purchase successful! Your pass has been added.");
+                    document.getElementById("wallet-balance").textContent = `Rs. ${result.wallet_balance}`;
+                } else {
+                    alert(result.error || "Purchase failed.");
+                }
+            } catch (error) {
+                alert("An error occurred while purchasing the bus pass.");
+            }
         }
+    
+        // ✅ Move logout function to global scope
+        function logout() {
+            console.log("Logging out...");
+            localStorage.clear();
+            sessionStorage.clear();
+    
+            // Show login form again
+            document.getElementById("auth-form").style.display = "block";
+            document.getElementById("dashboard").style.display = "none";
+            document.getElementById("bus-passes-page").style.display = "none";
+    
+            setTimeout(() => {
+                location.reload();
+            }, 500);
+        }
+        function validateSelection() {
+        const from = document.getElementById("from-location").value;
+        const to = document.getElementById("to-location").value;
+        const button = document.getElementById("purchase-ticket");
+        
+        if (from && to && from !== to) {
+            button.disabled = false;
+        } else {
+            button.disabled = true;
+        }
+    }
+    
+    function purchaseTicket() {
+        const from = document.getElementById("from-location").value;
+        const to = document.getElementById("to-location").value;
+        const now = new Date().toLocaleString();
+        
+        document.getElementById("ticket-from").textContent = from;
+        document.getElementById("ticket-to").textContent = to;
+        document.getElementById("ticket-time").textContent = now;
+        
+        document.getElementById("ticket-display").style.display = "block";
+    }
     </script>
-</body>
+                                
+    </body>
 </html>
